@@ -10,6 +10,11 @@ var fs = require('fs');
 var url = require('url');
 var cheerio = require('cheerio');
 var endOfLine = require('os').EOL;
+var moment = require('moment');
+
+moment.updateLocale('es',{
+    months: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+});
 
 
 var url_canonical = process.argv[2];
@@ -51,8 +56,8 @@ http.get(options, function (http_res) {
         web_author = jsonld.author.name,
         web_kicker = jsonld.description,
         web_time = jsonld.dateModified;
-    	
-    	var web_time_html = $(".post-meta time").html();
+
+        var web_time_format = moment(web_time).format('MMMM D[,] Y hh[:]mm a');
     	var web_content = $(".post-full_entry p");
 
     	web_content.splice(0,1);
@@ -67,7 +72,7 @@ http.get(options, function (http_res) {
     	$('head title').html(web_title);
     	$('header figure img').attr("src",web_image_featured);
     	$(".op-kicker").html(web_kicker);
-    	$(".op-published,.op-modified").attr("dateTime",web_time).html(web_time_html);
+    	$(".op-published,.op-modified").attr("dateTime",web_time).html(web_time_format);
     	$("address").html(web_author);
 
     	var parray = [];
