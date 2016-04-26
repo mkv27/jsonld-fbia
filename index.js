@@ -1,27 +1,29 @@
 /**
-    * jsonld-to-fbia v1.0.0
+    * jsonld-to-fbia v1.1.0
     *
     * Copyright (c) 2016 mkv27
     * MIT Licensed
  */
 
-var http = require("http");
-var fs = require('fs');
-var url = require('url');
-var cheerio = require('cheerio');
-var endOfLine = require('os').EOL;
-var moment = require('moment');
+const http = require("http");
+const fs = require('fs');
+const url = require('url');
+const cheerio = require('cheerio');
+const endOfLine = require('os').EOL;
+const moment = require('moment');
+
+const element = require('./element.js');
+
 
 moment.updateLocale('es',{
     months: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
 });
 
-
-var url_canonical = process.argv[2];
+//url_canonical without trailing slash
+var url_canonical = process.argv[2].replace(/\/$/, "");
 var url_parse = url.parse(url_canonical,true,true);
 
-
-var urlPath = url_parse.pathname + '/popup';//fix only altavoz.pe
+var urlPath = url_parse.pathname;
 var urlPort = url_parse.port !== null ? url_parse.port : 80;
 
 // Facebook Instant Article basic markup template
@@ -50,6 +52,8 @@ http.get(options, function (http_res) {
     	$ = cheerio.load(data);
 
         var jsonld = JSON.parse( $('script[type="application/ld+json"]').text() );
+
+        var jsoniafb = JSON.parse( $('script[type="application/ia+fb"]').text() );
         
         var web_title = jsonld.headline,
         web_image_featured = jsonld.image.url,
@@ -58,10 +62,8 @@ http.get(options, function (http_res) {
         web_time = jsonld.dateModified;
 
         var web_time_format = moment(web_time).format('MMMM D[,] Y hh[:]mm a');
-    	var web_content = $(".post-full_entry p");
-
-    	web_content.splice(0,1);
-    	web_content.splice(web_content.length-1,1);
+        $ = cheerio.load(jsoniafb.content);
+    	var web_content = $('p');
 
         /**
          * Write data in fbai template
@@ -79,7 +81,7 @@ http.get(options, function (http_res) {
     	$(web_content).each(function(i, elem) {
             //console.log(elem.children[0].name);
             if(elem.children[0].type == 'tag' && elem.children[0].name == 'iframe'){
-                parray[i] = `<figure class="op-social">${$(this).html()}</figure>`;
+                parray[i] = element.html.socialembed($(this).html());
             }else{
                 parray[i] = `<p>${$(this).html()}</p>`;
             } 
