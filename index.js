@@ -1,50 +1,35 @@
 /**
-    * jsonld-to-fbia v1.1.0
+    * jsonld-to-fbia v1.1.1
     *
     * Copyright (c) 2016 mkv27
     * MIT Licensed
  */
 
-const http = require("http");
+const request = require('request');
 const fs = require('fs');
-const url = require('url');
 const cheerio = require('cheerio');
 const endOfLine = require('os').EOL;
 const moment = require('moment');
 
-const element = require('./element.js');
+const elements = require('./Elements');
 
 
 moment.updateLocale('es',{
     months: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
 });
 
+var url_user = process.argv[2];
 //url_canonical without trailing slash
-var url_canonical = process.argv[2].replace(/\/$/, "");
-var url_parse = url.parse(url_canonical,true,true);
-
-var urlPath = url_parse.pathname;
-var urlPort = url_parse.port !== null ? url_parse.port : 80;
+var url_canonical = url_user.replace(/\/$/, "");
 
 // Facebook Instant Article basic markup template
 var iamarkup_template = fs.readFileSync('template.html', 'utf8');
 
 
-var options = {
-  host: url_parse.host,
-  port: urlPort,
-  path: urlPath
-};
+request(url_user, function(error, response, body){
+    if(!error && response.statusCode == 200){
 
-http.get(options, function (http_res) {
-
-    var data = "";
-
-    http_res.on("data", function (chunk) {
-        data += chunk;
-    });
-
-    http_res.on("end", function () {
+        var data = body;
 
         /**
          * Get data from url given
@@ -81,7 +66,7 @@ http.get(options, function (http_res) {
     	$(web_content).each(function(i, elem) {
             //console.log(elem.children[0].name);
             if(elem.children[0].type == 'tag' && elem.children[0].name == 'iframe'){
-                parray[i] = element.html.socialembed($(this).html());
+                parray[i] = elements.html.socialembed($(this).html());
             }else{
                 parray[i] = `<p>${$(this).html()}</p>`;
             } 
@@ -94,7 +79,6 @@ http.get(options, function (http_res) {
 			if (err) return console.log(err);
 			console.log('New IA created > ia.html');
 		});
-        
-    });
-});
 
+    }
+});

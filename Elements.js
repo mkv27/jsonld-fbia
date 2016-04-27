@@ -1,6 +1,6 @@
-const ifembed = require('./embeds.js');
+const ifembed = require('./Embeds');
 
-exports.html = {
+module.exports.html = {
 	image(src,caption){
 		return `
 			<figure>
@@ -10,7 +10,7 @@ exports.html = {
 		`;
 	},
 	socialembed(iframe){
-		if( ifembed.eval (iframe))
+		if( ifembed(iframe) )
 			return `
 				<figure class="op-social">${iframe}</figure>
 			`;

@@ -3,7 +3,7 @@
  */
 const embedsupport = ['instagram.com','facebook.com','twitter.com','vine.co','youtube.com'];
 
-exports.eval = s => {
+embeds = s => {
 	for (var value of embedsupport) {
 		var r = s.search(value);
 		if( r !== -1 )
@@ -11,3 +11,5 @@ exports.eval = s => {
     }
 	return false;
 };
+
+module.exports = embeds;
